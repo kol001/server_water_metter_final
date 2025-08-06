@@ -21,6 +21,29 @@ def init_routes(app):
     def login_page():
         return render_template("login.html")
 
+    @app.route("/admin/dashboard")
+    def admin_dashboard():
+    # On sert simplement la page HTML ; aucune donnée sensible n'est envoyée
+        return render_template("dashboard.html")
+
+    @app.route("/admin/upload")
+    @require_auth
+    def admin_upload():
+        return render_template("admin_upload.html")
+
+    @app.route("/api/admin/stats")
+    @require_auth
+    def admin_stats():
+        # Exemples de statistiques à retourner
+        users_count = db.users.count_documents({})
+        devices_count = db.devices.count_documents({})
+        articles_count = db.articles.count_documents({})
+        return jsonify({
+            "users": users_count,
+            "devices": devices_count,
+            "articles": articles_count
+        })
+
     @app.route("/api/register", methods=["POST"])
     def register():
         from .auth import register

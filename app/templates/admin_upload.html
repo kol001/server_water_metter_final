@@ -1,0 +1,19 @@
+<!-- app/templates/admin_upload.html -->
+{% extends "admin_base.html" %}
+{% block title %}Publier un article{% endblock %}
+{% block content %}
+<h2>Ajouter un article</h2>
+<form id="articleForm" enctype="multipart/form-data">
+    <!-- … le contenu de votre formulaire upload.html existant … -->
+</form>
+<p id="errorMessage" class="error"></p>
+<!-- … scripts existants pour la prévisualisation et l’envoi … -->
+<script>
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+        // Pas de token : on redirige vers la page de connexion
+        window.location.href = '/login';
+    }
+    </script>
+    
+{% endblock %}

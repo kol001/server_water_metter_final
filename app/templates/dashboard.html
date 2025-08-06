@@ -1,0 +1,43 @@
+<!-- app/templates/dashboard.html -->
+{% extends "admin_base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block content %}
+<h2 class="mb-4">Statistiques du système</h2>
+<div class="row">
+  <div class="col-md-6">
+    <canvas id="usersChart"></canvas>
+  </div>
+  <div class="col-md-6">
+    <canvas id="devicesChart"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadStats() {
+    const token = localStorage.getItem('jwt_token');
+    const res = await fetch('/api/admin/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const stats = await res.json();
+    // Créer les graphiques
+    new Chart(document.getElementById('usersChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Utilisateurs'],
+        datasets: [{ data: [stats.users], backgroundColor: ['#4e73df'] }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+    new Chart(document.getElementById('devicesChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Appareils'],
+        datasets: [{ data: [stats.devices], backgroundColor: ['#1cc88a'] }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+}
+loadStats();
+</script>
+{% endblock %}
