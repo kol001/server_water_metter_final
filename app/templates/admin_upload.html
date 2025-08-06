@@ -4,8 +4,129 @@
 {% block content %}
 <h2>Ajouter un article</h2>
 <form id="articleForm" enctype="multipart/form-data">
-    <!-- … le contenu de votre formulaire upload.html existant … -->
+    <div class="form-group">
+        <label for="titre">Titre:</label>
+        <input type="text" id="titre" name="titre" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+    </div>
+    <div class="form-group">
+        <label for="type">Type (info, semaine…):</label>
+        <input type="text" id="type" name="type">
+    </div>
+    <div class="form-group">
+        <label for="images">Images:</label>
+        <input type="file" id="images" name="images" multiple accept="image/*">
+        <div id="imagePreview" class="image-preview-container"></div>
+    </div>
+    <button type="submit">Envoyer</button>
 </form>
+<p id="errorMessage" class="error"></p>
+
+<script>
+    // Gestion de la prévisualisation et suppression des images
+    const fileInput = document.getElementById('images');
+    const previewContainer = document.getElementById('imagePreview');
+    let selectedFiles = [];
+
+    fileInput.addEventListener('change', function(event) {
+        previewContainer.innerHTML = ''; // Réinitialiser les aperçus
+        selectedFiles = Array.from(event.target.files);
+
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'image-preview';
+                previewDiv.innerHTML = `
+                    <img src="${e.target.result}" alt="Aperçu">
+                    <button type="button" onclick="removeImage(${index})">X</button>
+                `;
+                previewContainer.appendChild(previewDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Fonction pour supprimer une image
+    window.removeImage = function(index) {
+        selectedFiles.splice(index, 1); // Retirer le fichier de la liste
+        updatePreviews(); // Mettre à jour les aperçus
+    };
+
+    // Mettre à jour les aperçus après suppression
+    function updatePreviews() {
+        previewContainer.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'image-preview';
+                previewDiv.innerHTML = `
+                    <img src="${e.target.result}" alt="Aperçu">
+                    <button type="button" onclick="removeImage(${index})">X</button>
+                `;
+                previewContainer.appendChild(previewDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Mettre à jour les fichiers dans l'input
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        fileInput.files = dataTransfer.files;
+    }
+
+    // Gestion de la soumission du formulaire
+    document.getElementById('articleForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Empêche la soumission classique du formulaire
+
+        const form = event.target;
+        const formData = new FormData();
+        formData.append('titre', form.titre.value);
+        formData.append('description', form.description.value);
+        formData.append('type', form.type.value || 'info');
+        selectedFiles.forEach(file => formData.append('images', file));
+
+        const token = localStorage.getItem('jwt_token');
+
+        if (!token) {
+            alert('Veuillez vous connecter d\'abord !');
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/articles', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (response.ok) {
+                alert('Article ajouté avec succès !');
+                console.log(result);
+                form.reset(); // Réinitialiser le formulaire
+                previewContainer.innerHTML = ''; // Vider les aperçus
+                selectedFiles = []; // Réinitialiser la liste des fichiers
+            } else {
+                errorMessage.textContent = result.error || 'Erreur lors de l\'envoi';
+                errorMessage.style.display = 'block';
+            }
+        } catch (error) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = 'Erreur lors de l\'envoi : ' + error.message;
+            errorMessage.style.display = 'block';
+        }
+    });
+</script>
 <p id="errorMessage" class="error"></p>
 <!-- … scripts existants pour la prévisualisation et l’envoi … -->
 <script>
