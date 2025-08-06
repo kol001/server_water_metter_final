@@ -6,6 +6,7 @@ from .auth import require_auth
 from .utils import allowed_file, MONTH_NAMES
 from werkzeug.utils import secure_filename
 import bcrypt  # Ajout de l'importation de bcrypt
+import os  # Ajout pour send_from_directory
 
 def init_routes(app):
     db = app.config["DB"]
@@ -276,8 +277,19 @@ def init_routes(app):
             {"device_id": device_id},
             {"$set": {"pump_state": action == "on", "updated_at": (datetime.utcnow() + timedelta(hours=3)).isoformat() + "Z"}}
         )
-        app.socketio.emit("pump_action", {"device_id": device_id, "action": action}, namespace="/ws/pump_action")
         return jsonify({"status": f"Pompe {action} pour {device_id}"}), 200
+
+    @app.route("/api/pump_command/<device_id>", methods=["GET"])
+    def get_pump_command(device_id):
+        try:
+            device = db.devices.find_one({"device_id": device_id})
+            if not device:
+                return jsonify({"error": "Appareil non trouvé"}), 404
+            pump_state = device.get("pump_state", False)
+            return jsonify({"device_id": device_id, "action": "on" if pump_state else "off"}), 200
+        except Exception as e:
+            print(f"Erreur dans get_pump_command: {str(e)}")  # Log l'erreur
+            return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500    
 
     @app.route("/api/weather", methods=["GET"])
     def get_weather():

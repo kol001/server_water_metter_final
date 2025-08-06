@@ -13,6 +13,10 @@ def init_websocket(socketio):
     def ws_connect_pump():
         emit("message", {"info": "connected pump_action"})
 
+    @socketio.on_error("/ws/pump_action")
+    def error_handler(e):
+        print(f"[WebSocket] Erreur dans /ws/pump_action : {str(e)}")    
+
     @socketio.on("connect", namespace="/ws/timer")
     def ws_connect_timer():
         emit("message", {"info": "connected timer"})
