@@ -1,0 +1,134 @@
+# Pour faire marcher le teste unitaire
+venv\Scripts\python.exe -m pytest -q tests\test_app.py
+
+### POST /api/register
+POST http://localhost:5000/api/register
+Content-Type: application/json
+
+{
+    "username": "kol",
+    "password": "kol",
+    "role": "user"
+}
+
+### POST /api/login
+POST http://192.168.1.175:5000/api/login
+Content-Type: application/json
+
+{
+    "username": "kol",
+    "password": "kol"
+}
+
+### POST /api/devices
+POST http://localhost:5000/api/devices
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM5NjY1MzJ9.BWmcRbEnvNvVvi489egrke7g-ooGkVgxb9OlsdprAR8
+
+{
+    "device_id": "esp32_001",
+    "name": "Château d'eau C",
+    "location": "Site 2"
+}
+
+### GET /api/devices
+GET http://localhost:5000/api/devices
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzM5NTN9.vIW3om0EHHl7Hi9ulUigRHvT0BNt7YTZzI7f5YCsj6o
+
+### POST /api/water-level
+POST http://localhost:5000/api/water-level
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM5NjY1MzJ9.BWmcRbEnvNvVvi489egrke7g-ooGkVgxb9OlsdprAR8
+
+{
+    "device_id": "esp32_001",
+    "level": 70.2,
+    "pump_state": false,
+    "timestamp": "2025-07-29T15:00:00Z"
+}
+
+### POST /api/pump_action
+POST http://127.0.0.1:5000/api/pump_action 
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTQxNDAxNjh9.wNnFu2ywMJLRYV7MfGdqiQIBuvTR70OsI0NH9_HN_QQ
+
+{
+    "device_id":"esp32_001",
+    "action":"on"
+}
+
+### GET /api/pump_action
+GET http://localhost:5000/api/pump_action
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzM5NTN9.vIW3om0EHHl7Hi9ulUigRHvT0BNt7YTZzI7f5YCsj6o
+
+### GET /api/profile (récupérer infos utilisateur + appareils)
+GET http://localhost:5000/api/profile
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzYyODN9.OeQCrn3nrylLsL5-0_b4W0ptfuW709dovYDgK5tuz58
+
+### PUT /api/profile
+PUT http://localhost:5000/api/profile
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzQ3NTR9.3lBydiLAaIfMvPAo99uU8KalTl86jypMf9aba7T6TOY
+
+{
+    "username": "kol",
+    "password": "kol"
+}
+
+### POST /api/graph-data (mois)
+POST http://localhost:5000/api/graph-data
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzM5NTN9.vIW3om0EHHl7Hi9ulUigRHvT0BNt7YTZzI7f5YCsj6o
+
+{
+    "device_id": "chateau_1",
+    "view": "month",
+    "year": 2025,
+    "month": "juillet"
+}
+
+### GET /api/graph-data (année)
+POST http://localhost:5000/api/yearly-graph-data
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzM5NTN9.vIW3om0EHHl7Hi9ulUigRHvT0BNt7YTZzI7f5YCsj6o
+
+{
+    "device_id": "chateau_1",
+    "year": 2024
+}
+
+### GET /api/notifications
+GET http://localhost:5000/api/notifications
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzQ5NTZ9.p8aJy3hvs8DsL8AKhlZjXwGDVOznmF4-7gNgZX7caPI
+
+
+### POST /api/timer
+POST http://localhost:5000/api/timer
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzU0ODN9.3GO0KGwXeP7p61JVy5dZIMG-8S4VDd7oz1hiGTlAYvM
+
+{
+    "device_id": "chateau_2",
+    "start_time": "2025-07-25T18:00:00Z",
+    "duration": 3600
+}
+
+### GET /api/timers
+GET http://localhost:5000/api/timers
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTQxMzkxMDZ9.iwReDbPnJ5h_2SHldu0J0rbkFSE-mwm7g5RH2Zj4tyI
+
+### DELETE /api/timer/<timer_id>
+DELETE http://localhost:5000/api/timer/6888b2fed22a27c5fc2f2526
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzU0ODN9.3GO0KGwXeP7p61JVy5dZIMG-8S4VDd7oz1hiGTlAYvM
+
+### GET /api/weather
+GET http://192.168.88.55:5000/api/weather
+
+
+### GET /api/articles
+GET http://192.168.88.55:5000/api/articles
+
+
+### GET /api/article-of-the-week
+GET http://192.168.88.55:5000/api/article-of-the-week
+
