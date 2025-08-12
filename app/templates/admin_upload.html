@@ -23,7 +23,6 @@
     </div>
     <button type="submit">Envoyer</button>
 </form>
-<p id="errorMessage" class="error"></p>
 
 <script>
     // Gestion de la prévisualisation et suppression des images
@@ -129,12 +128,4 @@
 </script>
 <p id="errorMessage" class="error"></p>
 <!-- … scripts existants pour la prévisualisation et l’envoi … -->
-<script>
-    const token = localStorage.getItem('jwt_token');
-    if (!token) {
-        // Pas de token : on redirige vers la page de connexion
-        window.location.href = '/login';
-    }
-    </script>
-    
 {% endblock %}

@@ -1,0 +1,158 @@
+{% extends "admin_base.html" %}
+{% block title %}Articles{% endblock %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h2 class="m-0">Articles publiés</h2>
+  <div class="d-flex gap-2">
+    <input id="searchInput" class="form-control" placeholder="Rechercher par titre ou type…" />
+    <select id="typeFilter" class="form-select">
+      <option value="">Tous les types</option>
+      <option value="info">info</option>
+      <option value="semaine">semaine</option>
+      <option value="test">test</option>
+    </select>
+  </div>
+</div>
+
+<div id="articlesGrid" class="articles-grid"></div>
+
+<div id="articlesEmpty" class="text-center text-muted py-5" style="display:none;">
+  Aucun article.
+</div>
+
+<script>
+    (function () {
+      const ORIGIN = window.location.origin; // ex: http://127.0.0.1:5000 ou http://192.168.88.55:5000
+      const grid = document.getElementById('articlesGrid');
+      const input = document.getElementById('searchInput');
+      const filter = document.getElementById('typeFilter');
+      let allArticles = [];
+    
+      function absUrl(u){
+        if (!u) return '';
+        return u.startsWith('http') ? u : (API_BASE + u);
+      }
+    
+      function thumbsHTML(imgs){
+        const first4 = (imgs || []).slice(0,4);
+        return first4.map(u => `
+          <div class="thumb">
+            <img src="${absUrl(u)}" alt="">
+          </div>
+        `).join('');
+      }
+    
+      function cardHTML(a, idx){
+        const count = (a.image_urls || []).length;
+        const more = count > 4 ? `<button class="btn btn-sm btn-outline-secondary view-more" data-idx="${idx}">
+          Voir plus (${count})
+        </button>` : '';
+    
+        return `
+          <div class="card article-card">
+            ${a.image_urls && a.image_urls.length ? `
+              <div class="article-thumbs">
+                ${thumbsHTML(a.image_urls)}
+              </div>` : ''
+            }
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="badge rounded-pill bg-light text-dark">${a.type || '—'}</span>
+                <small class="text-muted">${new Date(a.created_at).toLocaleDateString()}</small>
+              </div>
+              <h5 class="article-title">${a.titre || 'Sans titre'}</h5>
+              <p class="article-desc text-muted">${a.description || ''}</p>
+              <div class="d-flex justify-content-end">${more}</div>
+            </div>
+          </div>
+        `;
+      }
+    
+      function render(list){
+        grid.innerHTML = list.map((a,i)=>cardHTML(a,i)).join('');
+    
+        // Hook boutons "Voir plus"
+        grid.querySelectorAll('.view-more').forEach(btn=>{
+          btn.addEventListener('click', (e)=>{
+            const i = parseInt(e.currentTarget.dataset.idx,10);
+            openGalleryModal(allArticles[i]);
+          });
+        });
+      }
+    
+      function applyFilters(){
+        const q = (input?.value || '').toLowerCase();
+        const t = filter?.value || '';
+        const out = allArticles.filter(a=>{
+          const okType = !t || (a.type||'').toLowerCase() === t;
+          const hay = `${a.titre||''} ${a.type||''} ${a.description||''}`.toLowerCase();
+          return okType && hay.includes(q);
+        });
+        render(out);
+      }
+    
+      function absUrl(u){
+            if (!u) return '';
+            return u.startsWith('http') ? u : (ORIGIN + u); // préfixe dynamique pour les images
+        }
+
+        async function load(){
+            try {
+            const res = await fetch('/api/articles'); // même origine que la page
+            if (!res.ok) throw new Error('HTTP '+res.status);
+            const data = await res.json();
+            allArticles = (Array.isArray(data)?data:[])
+                .sort((a,b)=> (new Date(b.created_at)) - (new Date(a.created_at)));
+            render(allArticles);
+            } catch (e) {
+            console.error('Articles fetch error:', e);
+            grid.innerHTML = `<div class="alert alert-danger">Erreur chargement articles.</div>`;
+            }
+        }
+            
+      // Modale Bootstrap affichant toutes les images
+      function openGalleryModal(article){
+        const id = 'articleGalleryModal';
+        let modal = document.getElementById(id);
+        if (!modal){
+          document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal fade" id="${id}" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Galerie – ${article.titre || ''}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="gallery-grid"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `);
+          modal = document.getElementById(id);
+        }
+    
+        const cont = modal.querySelector('.gallery-grid');
+        const imgs = (article.image_urls || []);
+        cont.innerHTML = imgs.map(u=>`
+          <div class="gitem"><img src="${absUrl(u)}" alt=""></div>
+        `).join('');
+    
+        const bs = new bootstrap.Modal(modal);
+        bs.show();
+      }
+    
+      // Events
+      input?.addEventListener('input', applyFilters);
+      filter?.addEventListener('change', applyFilters);
+    
+      load().catch(err=>{
+        console.error(err);
+        grid.innerHTML = `<div class="alert alert-danger">Erreur chargement articles.</div>`;
+      });
+    })();
+    </script>
+    
+{% endblock %}

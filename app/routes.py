@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, send_from_directory
+from flask import request, jsonify, render_template, send_from_directory, redirect, url_for
 from bson import ObjectId
 from datetime import datetime, timedelta
 from calendar import monthrange
@@ -11,11 +11,9 @@ import os  # Ajout pour send_from_directory
 def init_routes(app):
     db = app.config["DB"]
 
-    @app.route("/", methods=["GET", "POST"])
-    def upload_page():
-        if request.method == "POST":
-            return "Fichier reçu"
-        return render_template("upload.html")
+    @app.route("/")
+    def index():
+        return redirect(url_for('admin_dashboard'))
 
     @app.route("/login", methods=["GET"])
     def login_page():
@@ -26,10 +24,15 @@ def init_routes(app):
     # On sert simplement la page HTML ; aucune donnée sensible n'est envoyée
         return render_template("dashboard.html")
 
+    @app.route("/upload")
+    def upload():
+    # On sert simplement la page HTML ; aucune donnée sensible n'est envoyée
+        return render_template("upload.html")
+
     @app.route("/admin/upload")
-    @require_auth
     def admin_upload():
         return render_template("admin_upload.html")
+
 
     @app.route("/api/admin/stats")
     @require_auth
@@ -257,6 +260,7 @@ def init_routes(app):
         type_ = request.form.get("type", "info")
         if not titre or not desc:
             return jsonify({"error": "titre ou description manquant"}), 400
+
         imgs = request.files.getlist("images")
         urls = []
         for img in imgs:
@@ -265,6 +269,7 @@ def init_routes(app):
                 path = os.path.join(app.config["UPLOAD_FOLDER"], fn)
                 img.save(path)
                 urls.append(f"/uploads/articles/{fn}")
+
         doc = {
             "titre": titre,
             "description": desc,
@@ -272,14 +277,22 @@ def init_routes(app):
             "image_urls": urls,
             "created_at": datetime.utcnow().isoformat() + "Z"
         }
-        db.articles.insert_one(doc)
-        return jsonify({"status": "succès", "article": doc}), 201
+        result = db.articles.insert_one(doc)
+
+        # PyMongo a ajouté _id dans doc -> convertir en str pour JSON
+        doc_to_return = {**doc, "_id": str(result.inserted_id)}
+        return jsonify({"status": "succès", "article": doc_to_return}), 201
 
     @app.route("/api/articles", methods=["GET"])
     def list_articles():
         recs = list(db.articles.find({}, {"_id": 0}))
         return jsonify(recs), 200
 
+    @app.route("/admin/articles")
+    def admin_articles():
+        # Page HTML; les données seront fetch côté client depuis /api/articles
+        return render_template("admin_articles.html")
+    
     @app.route("/api/article-of-the-week", methods=["GET"])
     def article_of_week():
         art = db.articles.find_one({"type": "semaine"}, {"_id": 0})
@@ -318,6 +331,7 @@ def init_routes(app):
     def get_weather():
         return jsonify({"weather": "donnée météo factice"}), 200
 
-    @app.route("/uploads/articles/<filename>")
+    @app.route("/uploads/articles/<path:filename>")
     def serve_img(filename):
+        # Sert depuis app/static/uploads/articles
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
