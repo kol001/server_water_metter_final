@@ -22,6 +22,17 @@ def require_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+def require_role(*roles):
+    def wrapper(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if not getattr(request, "role", None) in roles:
+                return jsonify({"error": "Non autorisé"}), 403
+            return f(*args, **kwargs)
+        return decorated
+    return wrapper
+
+
 def register(db):
     def _register():
         data = request.json or {}

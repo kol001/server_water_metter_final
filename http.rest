@@ -122,13 +122,24 @@ DELETE http://localhost:5000/api/timer/6888b2fed22a27c5fc2f2526
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzU0ODN9.3GO0KGwXeP7p61JVy5dZIMG-8S4VDd7oz1hiGTlAYvM
 
 ### GET /api/weather
-GET http://192.168.88.55:5000/api/weather
+GET http://localhost:5000/api/weather
 
 
 ### GET /api/articles
-GET http://192.168.88.55:5000/api/articles
+GET http://localhost:5000/api/articles
 
 
 ### GET /api/article-of-the-week
-GET http://192.168.88.55:5000/api/article-of-the-week
+GET http://localhost:5000/api/article-of-the-week
 
+### Supprimer un appareil de l’utilisateur courant
+DELETE http://localhost:5000/api/devices/ESP32_002
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTUxMTAzMDN9.ckNfAbYjzXVcexTWHWJoYUk2hB_zLbk74otc8EBBUPU
+
+### Supprimer un utilisateur (admin)
+DELETE http://localhost:5000/api/users/689317cb4b83144712b8a11f
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg5NWViNjY5MWQ4OTEwYmYyOTBkYWVmIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzU1MTA4NDQzfQ.dgGi1ecVVXaYjW-gyXzcisb4hN7gm69wJyAWGjPqkro
+
+### Supprimer un article (admin)
+DELETE http://localhost:5000/api/articles/68876df27975238c1f5f7584
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg5NWViNjY5MWQ4OTEwYmYyOTBkYWVmIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzU1MTA4NDQzfQ.dgGi1ecVVXaYjW-gyXzcisb4hN7gm69wJyAWGjPqkro

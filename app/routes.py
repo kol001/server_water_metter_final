@@ -2,7 +2,7 @@ from flask import request, jsonify, render_template, send_from_directory, redire
 from bson import ObjectId
 from datetime import datetime, timedelta
 from calendar import monthrange
-from .auth import require_auth
+from .auth import require_auth, require_role
 from .utils import allowed_file, MONTH_NAMES
 from werkzeug.utils import secure_filename
 import bcrypt  # Ajout de l'importation de bcrypt
@@ -335,3 +335,92 @@ def init_routes(app):
     def serve_img(filename):
         # Sert depuis app/static/uploads/articles
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+    @app.route("/api/devices/<device_id>", methods=["DELETE"])
+    @require_auth
+    def delete_device(device_id):
+        db = app.config["DB"]
+        # l’appareil doit appartenir à l’utilisateur connecté
+        dev = db.devices.find_one({"device_id": device_id, "user_id": request.user_id})
+        if not dev:
+            return jsonify({"error": "Appareil non trouvé ou non autorisé"}), 404
+
+        # suppression de l’appareil
+        res_dev = db.devices.delete_one({"device_id": device_id, "user_id": request.user_id})
+        # retirer l’ID de l’appareil de la liste utilisateur
+        db.users.update_one({"_id": request.user_id}, {"$pull": {"devices": device_id}})
+        # supprimer données liées
+        res_levels = db.water_levels.delete_many({"device_id": device_id})
+        res_timers = db.timers.delete_many({"device_id": device_id})
+        res_alerts = db.alerts.delete_many({"device_id": device_id})
+
+        return jsonify({
+            "status": "succès",
+            "deleted": {
+                "device": res_dev.deleted_count,
+                "water_levels": res_levels.deleted_count,
+                "timers": res_timers.deleted_count,
+                "alerts": res_alerts.deleted_count
+            }
+        }), 200
+
+    @app.route("/api/users/<user_id>", methods=["DELETE"])
+    @require_auth
+    @require_role("admin")
+    def delete_user(user_id):
+        db = app.config["DB"]
+        try:
+            oid = ObjectId(user_id)
+        except Exception:
+            return jsonify({"error": "ID utilisateur invalide"}), 400
+
+        # récupérer les device_id pour purger les mesures
+        dev_ids = [d["device_id"] for d in db.devices.find({"user_id": oid}, {"device_id": 1, "_id": 0})]
+
+        res_devices = db.devices.delete_many({"user_id": oid})
+        res_levels = db.water_levels.delete_many({"device_id": {"$in": dev_ids}}) if dev_ids else type("x",(object,),{"deleted_count":0})()
+        res_timers = db.timers.delete_many({"user_id": oid})
+        res_alerts = db.alerts.delete_many({"user_id": oid})
+        res_user = db.users.delete_one({"_id": oid})
+
+        return jsonify({
+            "status": "succès",
+            "deleted": {
+                "user": res_user.deleted_count,
+                "devices": res_devices.deleted_count,
+                "water_levels": res_levels.deleted_count,
+                "timers": res_timers.deleted_count,
+                "alerts": res_alerts.deleted_count
+            }
+        }), 200
+
+    @app.route("/api/articles/<article_id>", methods=["DELETE"])
+    @require_auth
+    @require_role("admin")
+    def delete_article(article_id):
+        db = app.config["DB"]
+        try:
+            oid = ObjectId(article_id)
+        except Exception:
+            return jsonify({"error": "ID article invalide"}), 400
+
+        art = db.articles.find_one({"_id": oid})
+        if not art:
+            return jsonify({"error": "Article non trouvé"}), 404
+
+        # supprimer aussi les images sur disque si elles existent
+        for url in art.get("image_urls", []):
+            prefix = "/uploads/articles/"
+            if isinstance(url, str) and url.startswith(prefix):
+                filename = url.split(prefix, 1)[1]
+                path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                try:
+                    if os.path.exists(path):
+                        os.remove(path)
+                except Exception as e:
+                    # on ne bloque pas la suppression DB pour une erreur fichier
+                    print(f"[delete_article] Erreur suppression fichier {path}: {e}")
+
+        res = db.articles.delete_one({"_id": oid})
+        return jsonify({"status": "succès", "deleted": res.deleted_count}), 200
+
