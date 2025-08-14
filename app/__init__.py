@@ -5,9 +5,20 @@ from .routes import init_routes
 from .websocket import init_websocket
 from .timer import start_timer_worker, init_timer_routes
 from .water_level import init_water_level_routes
-from flask_socketio import SocketIO
 
-socketio = SocketIO(cors_allowed_origins="*")
+from flask_socketio import SocketIO
+import json
+
+class JSONWithDefault:
+    @staticmethod
+    def dumps(obj, **kwargs):
+        return json.dumps(obj, default=str, **kwargs)
+    @staticmethod
+    def loads(s, **kwargs):
+        return json.loads(s, **kwargs)
+
+socketio = SocketIO(async_mode="eventlet", cors_allowed_origins="*")
+
 
 def create_app():
     app = Flask(

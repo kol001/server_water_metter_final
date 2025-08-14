@@ -1,6 +1,11 @@
 # Pour faire marcher le teste unitaire
 venv\Scripts\python.exe -m pytest -q tests\test_app.py
 
+### GET all users (admin)
+GET http://localhost:5000/api/users
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg5NWViNjY5MWQ4OTEwYmYyOTBkYWVmIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzU1MjQwMzc4fQ.u87_yGXDceSjkfRaUvMFeLZs59LWDu-e0xrt2Q9wvVQ
+
+
 ### POST /api/register
 POST http://localhost:5000/api/register
 Content-Type: application/json
@@ -12,12 +17,12 @@ Content-Type: application/json
 }
 
 ### POST /api/login
-POST http://192.168.1.175:5000/api/login
+POST http://localhost:5000/api/login
 Content-Type: application/json
 
 {
-    "username": "kol",
-    "password": "kol"
+    "username": "admin",
+    "password": "admin"
 }
 
 ### POST /api/devices
@@ -100,7 +105,6 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEz
 ### GET /api/notifications
 GET http://localhost:5000/api/notifications
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjg3ZjU4OWEzMzMxMjViYjhkZGI0ODYyIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTM4NzQ5NTZ9.p8aJy3hvs8DsL8AKhlZjXwGDVOznmF4-7gNgZX7caPI
-
 
 ### POST /api/timer
 POST http://localhost:5000/api/timer

@@ -7,6 +7,7 @@ from .utils import allowed_file, MONTH_NAMES
 from werkzeug.utils import secure_filename
 import bcrypt  # Ajout de l'importation de bcrypt
 import os  # Ajout pour send_from_directory
+from bson.objectid import ObjectId
 
 def init_routes(app):
     db = app.config["DB"]
@@ -46,6 +47,25 @@ def init_routes(app):
             "devices": devices_count,
             "articles": articles_count
         })
+
+    @app.route("/api/users", methods=["GET"])
+    @require_auth
+    @require_role("admin")
+    def get_all_users():
+        db = app.config["DB"]
+
+        users = []
+        for u in db.users.find({}, {"password": 0}):  # on exclut le mot de passe
+            users.append({
+                "id": str(u["_id"]),
+                "username": u.get("username"),
+                "email": u.get("email"),
+                "role": u.get("role"),
+                "devices": u.get("devices", []),
+                "created_at": u.get("created_at")
+            })
+
+        return jsonify({"users": users}), 200
 
     @app.route("/api/register", methods=["POST"])
     def register():
