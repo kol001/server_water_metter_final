@@ -261,7 +261,7 @@ def test_water_level_valid(client, auth_token):
     assert body["status"] == "succès"
     preds = body["predictions"]
     assert set(preds.keys()) == {"anomaly", "predicted_level", "cluster"}
-    # Le prédicteur factice a ajouté 1.0
+    # Le prédicteur factice ajouté 1.0
     assert preds["predicted_level"] == 81.0
 
 
